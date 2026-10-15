@@ -136,10 +136,10 @@ tfoot td{font-weight:700;border-bottom:0;border-top:2px solid var(--ink)}
     <span class="mark big" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#2a1d00" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16V11h7l2-3h4l3 4h3v4"/><path d="M9 11l9-4"/><circle cx="6" cy="17" r="2" fill="#e8a317"/><circle cx="17" cy="17" r="2" fill="#e8a317"/></svg></span>
     <h2>ระบบบัญชี คุณนู๋สไลด์ออน</h2>
     <p class="sub" style="margin:0">เข้าสู่ระบบเพื่อบันทึกและดูสรุปรายรับรายจ่าย</p>
-    <label class="f">ชื่อผู้ใช้<input id="lg-user" autocomplete="username" autocapitalize="off" required></label>
+    <label class="f"><span id="lg-userLbl">ชื่อผู้ใช้</span><input id="lg-user" autocomplete="username" autocapitalize="off" required></label>
     <label class="f">รหัสผ่าน<input id="lg-pass" type="password" autocomplete="current-password" required></label>
     <div id="lg-err" class="neg" hidden>ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</div>
-    <button class="btn pri" type="submit" style="padding:12px">เข้าสู่ระบบ</button>
+    <button class="btn pri" type="submit" id="lg-btn" style="padding:12px">เข้าสู่ระบบ</button>
   </form>
 </section>
 <header class="top" hidden><div class="topin">
@@ -265,6 +265,7 @@ tfoot td{font-weight:700;border-bottom:0;border-top:2px solid var(--ink)}
 /* ===== ตั้งค่า ===== */
 const LOGIN={user:"admin",pass:"1234"};   // เปลี่ยนชื่อผู้ใช้/รหัสผ่านตรงนี้
 const FIREBASE_CONFIG=null;               // บน GitHub: วาง config จาก Firebase Console แทน null เช่น {apiKey:"...",authDomain:"...",projectId:"...",appId:"..."}
+                                          // เมื่อใส่ config แล้ว จะล็อกอินด้วยอีเมล/รหัสผ่านของ Firebase Authentication แทน LOGIN ด้านบน
 (function(){
 const ACCS=[["EA","อีเอ"],["AP","แอพปาย"],["MD","มอลเดียล"],["FN","ฟิม"],["AION","ไออ้อน"],["PMC","ดีพอล"],["ZK/VV","ซีคเกอร์/วอลโว่"],["KJ","เคเจ"],["EXP","เอ็กเพิค"],["CASH","เงินสด"],["OTHER","อื่นๆ"]];
 const ACCNAME=Object.fromEntries(ACCS);
@@ -604,15 +605,25 @@ function showBanner(html){$("#banner").hidden=!html;$("#banner").innerHTML=html|
 
 /* ---------- login ---------- */
 const AUTH_KEY="slide.auth";
+const useFirebase=!(window.claude&&window.claude.use)&&!!FIREBASE_CONFIG;
+let fbReady=null;
 const isAuthed=()=>{try{return localStorage.getItem(AUTH_KEY)===LOGIN.user}catch(e){return false}};
 function showApp(on){$("#login").hidden=on;document.querySelector("header.top").hidden=!on;$("main.wrap").hidden=!on;if(!on)$("#fab").hidden=true;else setTab(tab)}
-$("#loginForm").onsubmit=e=>{e.preventDefault();
+const loginFail=()=>{$("#lg-err").hidden=false;$("#lg-pass").value="";$("#lg-pass").focus()};
+$("#loginForm").onsubmit=async e=>{e.preventDefault();
+  if(useFirebase){
+    $("#lg-btn").disabled=true;
+    try{await fbReady;await firebase.auth().signInWithEmailAndPassword($("#lg-user").value.trim(),$("#lg-pass").value);$("#lg-err").hidden=true;$("#lg-pass").value=""}
+    catch(err){loginFail()}finally{$("#lg-btn").disabled=false}
+    return;
+  }
   if($("#lg-user").value.trim()===LOGIN.user&&$("#lg-pass").value===LOGIN.pass){try{localStorage.setItem(AUTH_KEY,LOGIN.user)}catch(e){}$("#lg-err").hidden=true;$("#lg-pass").value="";showApp(true)}
-  else{$("#lg-err").hidden=false;$("#lg-pass").value="";$("#lg-pass").focus()}};
-$("#logout").onclick=()=>{try{localStorage.removeItem(AUTH_KEY)}catch(e){}closeDlg();showApp(false)};
+  else loginFail()};
+$("#logout").onclick=async()=>{closeDlg();if(useFirebase){try{await firebase.auth().signOut()}catch(e){}location.reload();return}try{localStorage.removeItem(AUTH_KEY)}catch(e){}showApp(false)};
 
 /* ---------- start ---------- */
-showApp(isAuthed());
+if(useFirebase){$("#lg-userLbl").textContent="อีเมล";$("#lg-user").type="email";showApp(false)}
+else showApp(isAuthed());
 function onData(m){
   months.clear();for(const[k,v]of m)months.set(k,v);
   const first=!JOBS.length;rebuild();
@@ -654,6 +665,10 @@ async function importSeed(seed){for(const[k,v]of Object.entries(seed))await muta
 async function offerSeed(){
   let seed=null;try{const r=await fetch("seed.json");if(r.ok)seed=await r.json()}catch(e){}
   if(months.size)return;
+  if(store.mode==="firebase"){let loc=null;try{loc=JSON.parse(localStorage.getItem("slide.months")||"null")}catch(e){}
+    const ln=loc?Object.values(loc).reduce((s,m)=>s+((m&&m.jobs)||[]).length,0):0;
+    if(ln){showBanner(`ยังไม่มีข้อมูลบนคลาวด์ <button class="btn pri" id="migBtn" style="margin-left:8px">ย้ายข้อมูลจากเครื่องนี้ขึ้นคลาวด์ (${fmt0(ln)} งาน)</button>`);
+      $("#migBtn").onclick=async()=>{$("#migBtn").disabled=true;try{await importSeed(loc)}catch(e){toast(errMsg(e));$("#migBtn").disabled=false}};return}}
   if(seed){
     const n=Object.values(seed).reduce((s,m)=>s+(m.jobs||[]).length,0);
     showBanner(`ยังไม่มีข้อมูลในระบบ <button class="btn pri" id="seedBtn" style="margin-left:8px">นำเข้าข้อมูลเดิมจาก Excel (${fmt0(n)} งาน)</button>`);
@@ -677,10 +692,13 @@ async function offerSeed(){
     store=claudeStore(d);
   }else{
     dl=browserDownload;
-    if(FIREBASE_CONFIG){
-      try{await loadScript("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");await loadScript("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js");
-        firebase.initializeApp(FIREBASE_CONFIG);store=firebaseStore(firebase.firestore())}
-      catch(e){$("#sync").textContent="ไม่ได้เชื่อมต่อ";showBanner("เชื่อมต่อ Firebase ไม่ได้ ตรวจสอบ FIREBASE_CONFIG แล้วรีเฟรช");return}
+    if(useFirebase){
+      fbReady=(async()=>{const v="https://www.gstatic.com/firebasejs/10.12.2/";await loadScript(v+"firebase-app-compat.js");await loadScript(v+"firebase-auth-compat.js");await loadScript(v+"firebase-firestore-compat.js");firebase.initializeApp(FIREBASE_CONFIG)})();
+      try{await fbReady}catch(e){$("#lg-err").hidden=false;$("#lg-err").textContent="เชื่อมต่อ Firebase ไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วรีเฟรช";return}
+      store=firebaseStore(firebase.firestore());
+      let started=false;
+      firebase.auth().onAuthStateChanged(u=>{if(!u){showApp(false);return}showApp(true);if(!started){started=true;store.subscribe(onData,onErr)}});
+      return;
     }else{
       store=localStore();
       baseBanner=("โหมดเก็บข้อมูลในเครื่องนี้เท่านั้น เครื่องอื่นจะไม่เห็นข้อมูล ใส่ค่า FIREBASE_CONFIG ในไฟล์เพื่อให้ทุกเครื่องเห็นข้อมูลตรงกัน");showBanner(baseBanner);
