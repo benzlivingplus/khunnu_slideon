@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html,body{height:100%}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>ระบบบัญชี คุณนู๋สไลด์ออน</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap">
+<style>
+/* Layout: sticky header + tabs, one column of panels; bottom-sheet forms on phone, centered dialog on desktop */
+:root{
+  --bg:#f3f4f1; --surface:#ffffff; --sunk:#e9ebe6; --line:#d8dbd3;
+  --ink:#1c211d; --muted:#626a62; --accent:#e8a317; --accent-ink:#2a1d00;
+  --accent-soft:#fbefd2; --good:#21825a; --bad:#c2412d; --fuel:#c96a1b; --toll:#5b6fb3; --oth:#8b5aa8;
+  --display:"Bai Jamjuree","IBM Plex Sans Thai",system-ui,sans-serif;
+  --body:"IBM Plex Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#131614; --surface:#1c201d; --sunk:#252a26; --line:#323832;
+  --ink:#e9ece6; --muted:#9aa398; --accent:#f0b43a; --accent-ink:#231800;
+  --accent-soft:#3a2e12; --good:#4cc08b; --bad:#f07560; --fuel:#e88d45; --toll:#8e9fe0; --oth:#c08ddb; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#131614; --surface:#1c201d; --sunk:#252a26; --line:#323832;
+  --ink:#e9ece6; --muted:#9aa398; --accent:#f0b43a; --accent-ink:#231800;
+  --accent-soft:#3a2e12; --good:#4cc08b; --bad:#f07560; --fuel:#e88d45; --toll:#8e9fe0; --oth:#c08ddb; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 110px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.topin{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 0;display:flex;flex-direction:column;gap:10px}
+.brand{display:flex;align-items:center;gap:4px 10px;justify-content:space-between;flex-wrap:wrap}
+.brand h1{font-family:var(--display);font-size:clamp(18px,5vw,22px);margin:0;letter-spacing:.01em;display:flex;align-items:center;gap:10px}
+.mark{width:30px;height:30px;border-radius:7px;background:var(--accent);display:grid;place-items:center;flex:none}
+.mark svg{width:22px;height:22px}
+.sync{font-size:12px;color:var(--muted);text-align:right}
+.toprt{display:flex;align-items:center;gap:10px;margin-left:auto}
+.linkbtn{background:none;border:1px solid var(--line);border-radius:6px;color:var(--muted);font-size:12px;padding:3px 8px;cursor:pointer}
+.login{min-height:100%;display:flex;align-items:center;justify-content:center;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:48px}
+.loginCard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 22px;width:100%;max-width:380px;display:flex;flex-direction:column;gap:14px}
+.loginCard h2{font-family:var(--display);font-size:22px;margin:4px 0 0}
+.mark.big{width:52px;height:52px;border-radius:12px}.mark.big svg{width:36px;height:36px}
+.row .pen{color:var(--muted);font-size:12px;display:flex;align-items:center;justify-content:flex-end;gap:4px}
+nav.tabs{display:flex;gap:4px;overflow-x:auto}
+nav.tabs button{font:600 15px var(--body);background:none;border:0;color:var(--muted);padding:8px 14px 10px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+button{font-family:var(--body)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.panel{display:flex;flex-direction:column;gap:16px;padding-top:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0}
+.card h2{font-family:var(--display);font-size:17px;margin:0 0 12px;font-weight:600}
+.sub{color:var(--muted);font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:14px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.range{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 10px;min-width:0;width:100%}
+.range input{width:auto}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;min-width:0}
+.kpi .l{font-size:13px;color:var(--muted)}
+.kpi .v{font-family:var(--display);font-weight:700;font-size:24px;font-variant-numeric:tabular-nums;line-height:1.25;overflow-wrap:anywhere}
+.kpi .n{font-size:12px;color:var(--muted)}
+.kpi.hero{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.kpi.hero .l,.kpi.hero .n{color:var(--accent-ink);opacity:.8}
+@media (max-width:760px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi .v{font-size:20px}}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:760px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:14px}
+th,td{padding:7px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-weight:600;color:var(--muted);font-size:12.5px}
+th:first-child,td:first-child{text-align:left}
+tfoot td{font-weight:700;border-bottom:0;border-top:2px solid var(--ink)}
+.bar{height:6px;background:var(--sunk);border-radius:3px;overflow:hidden;min-width:60px}
+.bar i{display:block;height:100%;background:var(--accent)}
+.pos{color:var(--good)} .neg{color:var(--bad)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--muted);margin-bottom:6px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+#chart{width:100%;height:auto;display:block}
+.chartbox{position:relative}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12.5px;padding:6px 9px;border-radius:6px;white-space:nowrap;transform:translate(-50%,-110%);font-variant-numeric:tabular-nums}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.toolbar .grow{flex:1 1 180px}
+.monthnav{display:flex;align-items:center;gap:6px}
+@media (max-width:760px){.toolbar{flex-direction:column;align-items:stretch}.toolbar .grow{flex:none}.toolbar .spacer{display:none}.monthnav{justify-content:space-between}.mlabel{flex:1}#accFilter{width:100%!important}.toolbar .center{align-self:center;min-width:220px}}
+.datebox{position:relative;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:9px 10px;color:var(--ink);min-height:42px}
+.datebox input{position:absolute;inset:0;opacity:0;width:100%;height:100%;border:0;padding:0;-webkit-appearance:none;appearance:none;cursor:pointer}
+.iconbtn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;width:38px;height:38px;cursor:pointer;font-size:18px;line-height:1}
+.mlabel{font-family:var(--display);font-weight:600;font-size:17px;min-width:120px;text-align:center}
+.day{display:flex;flex-direction:column}
+.dayhead{display:flex;justify-content:space-between;gap:8px;padding:10px 4px 6px;font-size:13px;color:var(--muted);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.dayhead b{color:var(--ink);font-weight:600}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:10px 4px;border-bottom:1px solid var(--line);cursor:pointer;text-align:left;background:none;border-left:0;border-right:0;border-top:0;color:var(--ink);width:100%;font:inherit}
+.row:hover{background:var(--sunk)}
+.row .t{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .m{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .a{font-family:var(--display);font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.row .c{font-size:12px;text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.tag{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 7px;border-radius:5px;background:var(--accent-soft);color:var(--ink);margin-right:6px;vertical-align:1px}
+.tag.cash{background:var(--sunk)}
+.empty{padding:28px 8px;text-align:center;color:var(--muted)}
+.fab{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--accent);color:var(--accent-ink);border:0;border-radius:999px;padding:14px 20px;font:700 16px var(--body);box-shadow:0 6px 18px rgba(0,0,0,.22);cursor:pointer}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:9px 14px;font-weight:600;cursor:pointer}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--bad);border-color:var(--bad);background:none}
+.btn:disabled{opacity:.5;cursor:default}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:560px;max-height:92%;overflow:auto;border-radius:16px 16px 0 0;padding:18px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+@media (min-width:700px){.scrim{align-items:center}.sheet{border-radius:16px}}
+.sheet h3{font-family:var(--display);margin:0 0 14px;font-size:20px}
+.fgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.fgrid .full{grid-column:1/-1}
+.net{display:flex;justify-content:space-between;align-items:baseline;background:var(--sunk);border-radius:8px;padding:10px 12px;margin-top:14px}
+.net b{font-family:var(--display);font-size:20px;font-variant-numeric:tabular-nums}
+.actions{display:flex;gap:8px;justify-content:space-between;margin-top:16px;flex-wrap:wrap}
+.actions .r{display:flex;gap:8px;margin-left:auto}
+.banner{background:var(--accent-soft);border:1px solid var(--accent);border-radius:var(--r);padding:12px 14px;font-size:14px}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:14px;z-index:60}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{background:var(--surface);border:0;padding:6px 12px;color:var(--muted);cursor:pointer;font-size:13px}
+.seg button[aria-pressed="true"]{background:var(--sunk);color:var(--ink);font-weight:600}
+.hdr{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.hdr h2{margin:0}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}}}
+</style>
+
+<section id="login" class="login" hidden>
+  <form id="loginForm" class="loginCard" autocomplete="on">
+    <span class="mark big" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#2a1d00" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16V11h7l2-3h4l3 4h3v4"/><path d="M9 11l9-4"/><circle cx="6" cy="17" r="2" fill="#e8a317"/><circle cx="17" cy="17" r="2" fill="#e8a317"/></svg></span>
+    <h2>ระบบบัญชี คุณนู๋สไลด์ออน</h2>
+    <p class="sub" style="margin:0">เข้าสู่ระบบเพื่อบันทึกและดูสรุปรายรับรายจ่าย</p>
+    <label class="f">ชื่อผู้ใช้<input id="lg-user" autocomplete="username" autocapitalize="off" required></label>
+    <label class="f">รหัสผ่าน<input id="lg-pass" type="password" autocomplete="current-password" required></label>
+    <div id="lg-err" class="neg" hidden>ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</div>
+    <button class="btn pri" type="submit" style="padding:12px">เข้าสู่ระบบ</button>
+  </form>
+</section>
+<header class="top" hidden><div class="topin">
+  <div class="brand">
+    <h1><span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#2a1d00" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16V11h7l2-3h4l3 4h3v4"/><path d="M9 11l9-4"/><circle cx="6" cy="17" r="2" fill="#e8a317"/><circle cx="17" cy="17" r="2" fill="#e8a317"/></svg></span>ระบบบัญชี คุณนู๋สไลด์ออน</h1>
+    <div class="toprt"><div class="sync" id="sync">กำลังเชื่อมต่อ…</div><button class="linkbtn" id="logout">ออกจากระบบ</button></div>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="sum" aria-selected="true">สรุป</button>
+    <button role="tab" data-tab="jobs" aria-selected="false">บันทึกงาน</button>
+    <button role="tab" data-tab="exp" aria-selected="false">รายจ่ายอื่น</button>
+  </nav>
+</div></header>
+
+<main class="wrap" hidden>
+  <div id="banner" class="banner" hidden style="margin-top:16px"></div>
+
+  <!-- SUMMARY -->
+  <section class="panel" id="p-sum">
+    <div class="card">
+      <div class="chips" id="periods"></div>
+      <div class="range">
+        <div class="datebox"><span id="fromTxt"></span><input type="date" id="from" aria-label="ตั้งแต่วันที่"></div> <span class="sub">ถึง</span> <div class="datebox"><span id="toTxt"></span><input type="date" id="to" aria-label="ถึงวันที่"></div>
+        <span class="sub" id="rangeLabel"></span>
+      </div>
+    </div>
+    <div class="kpis" id="kpis"></div>
+    <div class="card">
+      <div class="hdr"><h2 id="chartTitle">แนวโน้ม</h2>
+        <div class="legend"><span><i style="background:var(--accent)"></i>รายได้</span><span><i style="background:var(--fuel)"></i>น้ำมัน</span><span><i style="background:var(--toll)"></i>ทางด่วน</span><span><i style="background:var(--oth)"></i>รายจ่ายอื่น</span><span><i style="background:var(--good);height:3px"></i>สุทธิ</span></div>
+      </div>
+      <div class="chartbox"><svg id="chart" viewBox="0 0 900 280" role="img" aria-label="กราฟรายได้และค่าใช้จ่าย"></svg><div class="tip" id="tip" hidden></div></div>
+    </div>
+    <div class="card"><div class="hdr"><h2 id="periodTblTitle">สรุปรายเดือน</h2><button class="btn" id="csvBtn" hidden>ส่งออก Excel ช่วงนี้</button></div><div class="tbl" id="periodTbl"></div></div>
+    <div class="grid2">
+      <div class="card"><h2>แยกตามบริษัท / ช่องทางรับเงิน</h2><div class="tbl" id="accTbl"></div></div>
+      <div class="card"><h2>แยกตามประเภทงาน</h2><div class="tbl" id="typeTbl"></div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h2>แยกตามวันในสัปดาห์</h2><div class="tbl" id="wdTbl"></div></div>
+      <div class="card"><h2>รายจ่ายอื่นตามหมวด</h2><div class="tbl" id="expCatTbl"></div></div>
+    </div>
+  </section>
+
+  <!-- JOBS -->
+  <section class="panel" id="p-jobs" hidden>
+    <div class="card">
+      <div class="toolbar">
+        <div class="monthnav"><button class="iconbtn" id="mPrev" aria-label="เดือนก่อน">‹</button><div class="mlabel" id="mLabel"></div><button class="iconbtn" id="mNext" aria-label="เดือนถัดไป">›</button></div>
+        <input class="grow" id="q" type="search" placeholder="ค้นหา สถานที่ ทะเบียน เลขเคส">
+        <select id="accFilter" style="width:auto" aria-label="กรองบริษัท"></select>
+        <button class="btn center" id="xlsMonth" hidden>ส่งออก Excel เดือนนี้</button>
+      </div>
+      <div class="sub" id="jobsSum" style="margin-top:10px"></div>
+    </div>
+    <div class="card" style="padding-block:4px"><div id="jobList"></div></div>
+  </section>
+
+  <!-- OTHER EXPENSES -->
+  <section class="panel" id="p-exp" hidden>
+    <div class="card">
+      <div class="toolbar">
+        <div class="monthnav"><button class="iconbtn" id="ePrev" aria-label="เดือนก่อน">‹</button><div class="mlabel" id="eLabel"></div><button class="iconbtn" id="eNext" aria-label="เดือนถัดไป">›</button></div>
+        <span class="grow spacer"></span>
+        <button class="btn pri center" id="addExp">+ เพิ่มรายจ่าย</button>
+      </div>
+      <p class="sub" style="margin:10px 0 0">สำหรับค่าใช้จ่ายที่ไม่ผูกกับงานใดงานหนึ่ง เช่น ซ่อมบำรุง ค่าแรงคนขับ ค่างวดรถ ประกัน ภาษี (น้ำมันและทางด่วนรายงานให้บันทึกในหน้างาน)</p>
+    </div>
+    <div class="card" style="padding-block:4px"><div id="expList"></div></div>
+  </section>
+</main>
+
+<button class="fab" id="fab">+ บันทึกงาน</button>
+
+<div class="scrim" id="jobDlg" hidden>
+  <form class="sheet" id="jobForm" autocomplete="off">
+    <h3 id="jobDlgTitle">บันทึกงาน</h3>
+    <div class="fgrid">
+      <label class="f">วันที่<div class="datebox"><span id="j-dateTxt"></span><input type="date" id="j-date" required aria-label="วันที่"></div></label>
+      <label class="f">เวลา<input type="time" id="j-time"></label>
+      <label class="f full">ประเภทงาน<select id="j-typeSel"></select></label>
+      <label class="f full" id="j-typeOtherWrap" hidden>ระบุประเภทงาน<input id="j-typeOther" placeholder="เช่น ลากรถจักรยานยนต์"></label>
+      <label class="f full">สถานที่ / เส้นทาง<input id="j-place" placeholder="บ้านเก่า ส่ง บางแสน"></label>
+      <label class="f">ทะเบียน<input id="j-plate"></label>
+      <label class="f">เลขเคส<input id="j-case"></label>
+      <label class="f full">บริษัท / ช่องทางรับเงิน<select id="j-acc" required></select></label>
+      <label class="f full" id="j-accOtherWrap" hidden>ชื่อบริษัท<input id="j-accOther" placeholder="พิมพ์ชื่อบริษัท"></label>
+      <label class="f full">ชื่อลูกค้า (ถ้ามี)<input id="j-cust"></label>
+      <label class="f">ค่าบริการ (บาท)<input id="j-amt" type="number" inputmode="decimal" step="0.01" min="0" required></label>
+      <label class="f">หักเงินคืนประกัน<input id="j-ref" type="number" inputmode="decimal" step="0.01" min="0"></label>
+      <label class="f">ค่าทางด่วน<input id="j-toll" type="number" inputmode="decimal" step="0.01" min="0"></label>
+      <label class="f">ค่าน้ำมัน<input id="j-fuel" type="number" inputmode="decimal" step="0.01" min="0"></label>
+    </div>
+    <div class="net"><span class="sub">คงเหลือ</span><b id="j-net">0</b></div>
+    <div class="actions">
+      <button type="button" class="btn danger" id="j-del" hidden>ลบ</button>
+      <div class="r"><button type="button" class="btn" data-close>ยกเลิก</button><button type="submit" class="btn pri" id="j-save">บันทึก</button></div>
+    </div>
+  </form>
+</div>
+
+<div class="scrim" id="expDlg" hidden>
+  <form class="sheet" id="expForm" autocomplete="off">
+    <h3 id="expDlgTitle">รายจ่ายอื่น</h3>
+    <div class="fgrid">
+      <label class="f">วันที่<div class="datebox"><span id="e-dateTxt"></span><input type="date" id="e-date" required aria-label="วันที่"></div></label>
+      <label class="f">หมวด<input id="e-cat" list="catList" required placeholder="ซ่อมบำรุง"></label>
+      <label class="f full">รายละเอียด<input id="e-note"></label>
+      <label class="f">จำนวนเงิน (บาท)<input id="e-amt" type="number" inputmode="decimal" step="0.01" min="0" required></label>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn danger" id="e-del" hidden>ลบ</button>
+      <div class="r"><button type="button" class="btn" data-close>ยกเลิก</button><button type="submit" class="btn pri" id="e-save">บันทึก</button></div>
+    </div>
+  </form>
+</div>
+
+<datalist id="catList"><option value="ซ่อมบำรุง"><option value="ค่าแรงคนขับ"><option value="ค่างวดรถ"><option value="ประกัน / ภาษี / พรบ."><option value="อุปกรณ์"><option value="น้ำมัน (ไม่ผูกงาน)"><option value="อื่นๆ"></datalist>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* ===== ตั้งค่า ===== */
+const LOGIN={user:"admin",pass:"1234"};   // เปลี่ยนชื่อผู้ใช้/รหัสผ่านตรงนี้
+const FIREBASE_CONFIG=null;               // บน GitHub: วาง config จาก Firebase Console แทน null เช่น {apiKey:"...",authDomain:"...",projectId:"...",appId:"..."}
+(function(){
+const ACCS=[["EA","อีเอ"],["AP","แอพปาย"],["MD","มอลเดียล"],["FN","ฟิม"],["AION","ไออ้อน"],["PMC","ดีพอล"],["ZK/VV","ซีคเกอร์/วอลโว่"],["KJ","เคเจ"],["EXP","เอ็กเพิค"],["CASH","เงินสด"],["OTHER","อื่นๆ"]];
+const ACCNAME=Object.fromEntries(ACCS);
+const BASE_TYPES=["ยกรถ","พ่วงแบต","เคสช่าง","เปลี่ยนยาง","เติมน้ำมัน","รีเซ็ตขั้วแบต","ตรวจสอบรถ","เสียเวลา"];
+const TH_M=["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+const TH_WD=["อาทิตย์","จันทร์","อังคาร","พุธ","พฤหัส","ศุกร์","เสาร์"];
+const TH_WDS=["อา.","จ.","อ.","พ.","พฤ.","ศ.","ส."];
+const accLabel=j=>{const a=j.account||"CASH";return a==="CASH"?"เงินสด":a==="OTHER"?(j.accountName||"อื่นๆ"):a};
+const accOpt=(c,n)=>c==="CASH"?"เงินสด":c==="OTHER"?"อื่นๆ (ระบุชื่อ)":c+" · "+n;
+const nowHM=()=>{const d=new Date();return pad(d.getHours())+":"+pad(d.getMinutes())};
+const $=s=>document.querySelector(s);
+const fmt=n=>(Math.round(n*100)/100).toLocaleString("th-TH",{maximumFractionDigits:2});
+const fmt0=n=>Math.round(n).toLocaleString("th-TH");
+const num=v=>{const x=parseFloat(v);return isFinite(x)?x:0};
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parse=s=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const thDate=s=>{const d=parse(s);return d.getDate()+" "+TH_M[d.getMonth()]+" "+String(d.getFullYear()+543).slice(2)};
+const thMonth=ym=>{const[y,m]=ym.split("-").map(Number);return TH_M[m-1]+" "+String(y+543).slice(2)};
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const jobNet=j=>(j.amount||0)-(j.refund||0);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const today=iso(new Date());
+
+let dl=null, canWrite=true;
+const months=new Map(); // "2026-01" -> {jobs:[],exps:[]}
+let JOBS=[],EXPS=[],TYPES=BASE_TYPES.slice();
+function rebuild(){
+  JOBS=[];EXPS=[];
+  for(const v of months.values()){ (v.jobs||[]).forEach(j=>JOBS.push(j)); (v.exps||[]).forEach(e=>EXPS.push(e)); }
+  const sk=j=>j.date+" "+(j.time||"");
+  JOBS.sort((a,b)=>sk(a)<sk(b)?-1:sk(a)>sk(b)?1:0);
+  const types=new Set(BASE_TYPES); JOBS.forEach(j=>j.type&&types.add(j.type));
+  TYPES=[...types];
+}
+
+/* ---------- tabs ---------- */
+let tab="sum";
+try{const t=localStorage.getItem("slide.tab"); if(["sum","jobs","exp"].includes(t)) tab=t;}catch(e){}
+function setTab(t){tab=t;document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===t));
+  $("#p-sum").hidden=t!=="sum";$("#p-jobs").hidden=t!=="jobs";$("#p-exp").hidden=t!=="exp";
+  $("#fab").hidden=t==="exp"||!canWrite; try{localStorage.setItem("slide.tab",t)}catch(e){} render();}
+document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+
+/* ---------- period ---------- */
+const PERIODS=[["today","วันนี้"],["7d","7 วันล่าสุด"],["thisM","เดือนนี้"],["lastM","เดือนที่แล้ว"],["q","ไตรมาสนี้"],["h1","ครึ่งปีแรก"],["h2","ครึ่งปีหลัง"],["year","ปีนี้"],["all","ทั้งหมด"],["custom","กำหนดเอง"]];
+let period="year";
+try{const p=localStorage.getItem("slide.period"); if(p&&PERIODS.some(x=>x[0]===p)&&p!=="custom") period=p;}catch(e){}
+let range={from:"",to:""};
+function computeRange(p){
+  const n=new Date(),y=n.getFullYear(),m=n.getMonth();
+  switch(p){
+    case"today":return{from:today,to:today};
+    case"7d":{const a=new Date(n);a.setDate(a.getDate()-6);return{from:iso(a),to:today}}
+    case"thisM":return{from:iso(new Date(y,m,1)),to:iso(new Date(y,m+1,0))};
+    case"lastM":return{from:iso(new Date(y,m-1,1)),to:iso(new Date(y,m,0))};
+    case"q":{const q=Math.floor(m/3)*3;return{from:iso(new Date(y,q,1)),to:iso(new Date(y,q+3,0))}}
+    case"h1":return{from:y+"-01-01",to:y+"-06-30"};
+    case"h2":return{from:y+"-07-01",to:y+"-12-31"};
+    case"year":return{from:y+"-01-01",to:y+"-12-31"};
+    case"all":{const f=JOBS[0]?.date||today,l=JOBS[JOBS.length-1]?.date||today;const ef=EXPS.reduce((a,e)=>e.date<a?e.date:a,f),el=EXPS.reduce((a,e)=>e.date>a?e.date:a,l);return{from:ef,to:el>today?el:(l>today?l:el)}}
+  }
+  return range;
+}
+$("#periods").innerHTML=PERIODS.map(([k,l])=>`<button class="chip" data-p="${k}">${l}</button>`).join("");
+$("#periods").onclick=e=>{const b=e.target.closest("[data-p]");if(!b)return;period=b.dataset.p;if(period!=="custom"){range=computeRange(period);try{localStorage.setItem("slide.period",period)}catch(e){}}else if(!range.from){range=computeRange("thisM")}renderSummary()};
+$("#from").onchange=$("#to").onchange=()=>{period="custom";range={from:$("#from").value,to:$("#to").value};if(range.from>range.to&&range.to){[range.from,range.to]=[range.to,range.from]}renderSummary()};
+
+function agg(list){const r={inc:0,n:0,fuel:0,toll:0};for(const j of list){r.inc+=jobNet(j);r.n++;r.fuel+=j.fuel||0;r.toll+=j.toll||0}return r}
+
+function renderSummary(){
+  if(period!=="custom") range=computeRange(period);
+  document.querySelectorAll("#periods .chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.p===period));
+  $("#from").value=range.from;$("#to").value=range.to;$("#fromTxt").textContent=dateTxt(range.from);$("#toTxt").textContent=dateTxt(range.to);
+  const days=Math.round((parse(range.to)-parse(range.from))/864e5)+1;
+  $("#rangeLabel").textContent=range.from?`${days} วัน`:"";
+  const js=JOBS.filter(j=>j.date>=range.from&&j.date<=range.to);
+  const es=EXPS.filter(e=>e.date>=range.from&&e.date<=range.to);
+  const a=agg(js), oth=es.reduce((s,e)=>s+(e.amount||0),0);
+  const net=a.inc-a.fuel-a.toll-oth, mg=a.inc?net/a.inc*100:0;
+  const pct=v=>a.inc?(v/a.inc*100).toFixed(1)+"% ของรายได้":"–";
+  $("#kpis").innerHTML=[
+    ["hero","รายได้สุทธิ",fmt(net),`Margin ${mg.toFixed(1)}%`],
+    ["","รายได้รวม",fmt(a.inc),"บาท"],
+    ["","จำนวนงาน",fmt0(a.n),"เฉลี่ย "+fmt0(a.n?a.inc/a.n:0)+" บาท/งาน"],
+    ["","ค่าน้ำมัน",fmt(a.fuel),pct(a.fuel)],
+    ["","ค่าทางด่วน",fmt(a.toll),pct(a.toll)],
+    ["","รายจ่ายอื่น",fmt(oth),pct(oth)],
+    ["","ค่าใช้จ่ายรวม",fmt(a.fuel+a.toll+oth),pct(a.fuel+a.toll+oth)],
+    ["","เฉลี่ยต่อวัน",fmt0(days?a.inc/days:0),"รายได้ / วันตามปฏิทิน"]
+  ].map(([c,l,v,n])=>`<div class="kpi ${c}"><div class="l">${l}</div><div class="v">${v}</div><div class="n">${n}</div></div>`).join("");
+
+  // buckets
+  const byDay=days<=62;
+  const key=d=>byDay?d:d.slice(0,7);
+  const buckets=new Map();
+  if(range.from){ if(byDay){for(let d=parse(range.from);iso(d)<=range.to;d.setDate(d.getDate()+1))buckets.set(iso(d),null)}
+    else{let d=parse(range.from);d.setDate(1);while(iso(d).slice(0,7)<=range.to.slice(0,7)){buckets.set(iso(d).slice(0,7),null);d.setMonth(d.getMonth()+1)}} }
+  for(const k of buckets.keys())buckets.set(k,{inc:0,n:0,fuel:0,toll:0,oth:0});
+  js.forEach(j=>{const b=buckets.get(key(j.date));if(b){b.inc+=jobNet(j);b.n++;b.fuel+=j.fuel||0;b.toll+=j.toll||0}});
+  es.forEach(e=>{const b=buckets.get(key(e.date));if(b)b.oth+=e.amount||0});
+  const rows=[...buckets.entries()];
+  $("#chartTitle").textContent=byDay?"รายวัน":"รายเดือน";
+  drawChart(rows,byDay);
+
+  $("#periodTblTitle").textContent=byDay?"สรุปรายวัน":"สรุปรายเดือน";
+  const shown=byDay?rows.filter(([,b])=>b.n||b.oth):rows;
+  const tot=rows.reduce((t,[,b])=>{for(const k in b)t[k]+=b[k];return t},{inc:0,n:0,fuel:0,toll:0,oth:0});
+  const line=(lab,b,tag="td")=>{const nt=b.inc-b.fuel-b.toll-b.oth;return`<tr><${tag}>${lab}</${tag}><${tag}>${fmt(b.inc)}</${tag}><${tag}>${fmt0(b.n)}</${tag}><${tag}>${fmt(b.fuel)}</${tag}><${tag}>${fmt(b.toll)}</${tag}><${tag}>${fmt(b.oth)}</${tag}><${tag} class="${nt<0?"neg":""}">${fmt(nt)}</${tag}><${tag}>${b.inc?(nt/b.inc*100).toFixed(1):"–"}</${tag}><${tag}>${b.n?fmt0(b.inc/b.n):"–"}</${tag}></tr>`};
+  $("#periodTbl").innerHTML=shown.length?`<table><thead><tr><th>${byDay?"วันที่":"เดือน"}</th><th>รายได้รวม</th><th>งาน</th><th>น้ำมัน</th><th>ทางด่วน</th><th>จ่ายอื่น</th><th>สุทธิ</th><th>Margin %</th><th>เฉลี่ย/งาน</th></tr></thead><tbody>${shown.map(([k,b])=>line(byDay?thDate(k):thMonth(k),b)).join("")}</tbody><tfoot>${line("รวม",tot)}</tfoot></table>`:`<div class="empty">ไม่มีข้อมูลในช่วงนี้</div>`;
+
+  // by account
+  const acc=new Map(ACCS.map(([c])=>[c,{n:0,inc:0}]));
+  acc.delete("OTHER");
+  js.forEach(j=>{const k=(j.account==="OTHER")?"OTHER:"+(j.accountName||"อื่นๆ"):(j.account||"CASH");if(!acc.has(k))acc.set(k,{n:0,inc:0});const r=acc.get(k);r.n++;r.inc+=jobNet(j)});
+  const accRows=[...acc.entries()].filter(([,r])=>r.n).sort((x,y)=>y[1].inc-x[1].inc);
+  $("#accTbl").innerHTML=breakdown(accRows.map(([k,r])=>[k.startsWith("OTHER:")?`${esc(k.slice(6))} <span class="sub">อื่นๆ</span>`:ACCNAME[k]?`${esc(k==="CASH"?"เงินสด":k)} <span class="sub">${k==="CASH"?"":esc(ACCNAME[k])}</span>`:esc(k),r.n,r.inc]),a.inc,"บริษัท");
+  const ty=new Map();js.forEach(j=>{const k=j.type||"อื่นๆ";const r=ty.get(k)||{n:0,inc:0};r.n++;r.inc+=jobNet(j);ty.set(k,r)});
+  $("#typeTbl").innerHTML=breakdown([...ty.entries()].sort((x,y)=>y[1].inc-x[1].inc).map(([k,r])=>[esc(k),r.n,r.inc]),a.inc,"ประเภท");
+  const wd=[1,2,3,4,5,6,0].map(i=>[i,{n:0,inc:0}]);const wm=new Map(wd);
+  js.forEach(j=>{const r=wm.get(parse(j.date).getDay());r.n++;r.inc+=jobNet(j)});
+  $("#wdTbl").innerHTML=breakdown(wd.map(([i,r])=>[TH_WD[i],r.n,r.inc]),a.inc,"วัน",true);
+  const ec=new Map();es.forEach(e=>{const k=e.category||"อื่นๆ";const r=ec.get(k)||{n:0,inc:0};r.n++;r.inc+=e.amount||0;ec.set(k,r)});
+  $("#expCatTbl").innerHTML=ec.size?breakdown([...ec.entries()].sort((x,y)=>y[1].inc-x[1].inc).map(([k,r])=>[esc(k),r.n,r.inc]),oth,"หมวด",false,"รายการ","ยอดเงิน"):`<div class="empty">ยังไม่มีรายจ่ายอื่นในช่วงนี้<br><span class="sub">เพิ่มได้ที่แท็บ "รายจ่ายอื่น"</span></div>`;
+  $("#csvBtn").hidden=!dl||!js.length&&!es.length;
+}
+function breakdown(rows,total,label,keepZero,nL="งาน",vL="รายได้"){
+  if(!rows.length||(!keepZero&&!total))return`<div class="empty">ไม่มีข้อมูลในช่วงนี้</div>`;
+  const max=Math.max(1,...rows.map(r=>r[2]));
+  return`<table><thead><tr><th>${label}</th><th>${nL}</th><th>${vL}</th><th>เฉลี่ย</th><th>สัดส่วน</th></tr></thead><tbody>${rows.map(([l,n,v])=>`<tr><td>${l}</td><td>${fmt0(n)}</td><td>${fmt(v)}</td><td>${n?fmt0(v/n):"–"}</td><td><div style="display:flex;align-items:center;gap:8px;justify-content:flex-end"><span class="sub">${total?(v/total*100).toFixed(1):"0"}%</span><div class="bar" style="width:70px"><i style="width:${v/max*100}%"></i></div></div></td></tr>`).join("")}</tbody></table>`;
+}
+
+/* ---------- chart ---------- */
+let chartRows=[];
+function drawChart(rows,byDay){
+  chartRows=rows;
+  const svg=$("#chart"),W=900,H=280,L=58,R=12,T=12,B=34,cw=W-L-R,ch=H-T-B;
+  const cs=getComputedStyle(document.documentElement);
+  if(!rows.length){svg.innerHTML="";return}
+  const maxV=Math.max(1,...rows.map(([,b])=>Math.max(b.inc,b.fuel+b.toll+b.oth)));
+  const nice=v=>{const p=Math.pow(10,Math.floor(Math.log10(v)));const f=v/p;return(f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p};
+  const top=nice(maxV),y=v=>T+ch-(v/top)*ch;
+  const n=rows.length,slot=cw/n,bw=Math.max(1.5,Math.min(28,slot*0.38));
+  let g="";
+  for(let i=0;i<=4;i++){const v=top*i/4;g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" font-size="12" fill="var(--muted)">${v>=1000?fmt0(v/1000)+"k":fmt0(v)}</text>`}
+  const step=Math.ceil(n/(byDay?10:12));
+  rows.forEach(([k,b],i)=>{
+    const cx=L+slot*i+slot/2;
+    g+=`<rect x="${cx-bw-1}" y="${y(b.inc)}" width="${bw}" height="${Math.max(0,T+ch-y(b.inc))}" fill="var(--accent)" rx="1.5"/>`;
+    let yy=T+ch;[[b.fuel,"--fuel"],[b.toll,"--toll"],[b.oth,"--oth"]].forEach(([v,c])=>{const h=(v/top)*ch;if(h>0){yy-=h;g+=`<rect x="${cx+1}" y="${yy}" width="${bw}" height="${h}" fill="var(${c})"/>`}});
+    if(i%step===0){const d=byDay?String(parse(k).getDate()):thMonth(k);g+=`<text x="${cx}" y="${H-12}" text-anchor="middle" font-size="12" fill="var(--muted)">${d}</text>`}
+  });
+  const pts=rows.map(([,b],i)=>`${L+slot*i+slot/2},${y(Math.max(0,b.inc-b.fuel-b.toll-b.oth))}`);
+  g+=`<polyline points="${pts.join(" ")}" fill="none" stroke="var(--good)" stroke-width="2.2" stroke-linejoin="round"/>`;
+  if(n<=40)pts.forEach((p,i)=>{const[x,yv]=p.split(",");g+=`<circle cx="${x}" cy="${yv}" r="${i===n-1?4:2.5}" fill="var(--good)"/>`});
+  g+=`<rect id="hit" x="${L}" y="${T}" width="${cw}" height="${ch}" fill="transparent"/>`;
+  svg.innerHTML=g;
+  const hit=svg.querySelector("#hit"),tip=$("#tip");
+  const move=ev=>{const r=svg.getBoundingClientRect();const px=(ev.clientX-r.left)/r.width*W;const i=Math.min(n-1,Math.max(0,Math.floor((px-L)/slot)));const[k,b]=rows[i];const nt=b.inc-b.fuel-b.toll-b.oth;
+    tip.innerHTML=`<b>${byDay?thDate(k):thMonth(k)}</b> · ${b.n} งาน<br>รายได้ ${fmt(b.inc)}<br>น้ำมัน ${fmt(b.fuel)} · ทางด่วน ${fmt(b.toll)}${b.oth?` · อื่น ${fmt(b.oth)}`:""}<br>สุทธิ ${fmt(nt)}`;
+    tip.hidden=false;const x=(L+slot*i+slot/2)/W*r.width;tip.style.left=Math.min(r.width-90,Math.max(90,x))+"px";tip.style.top=(y(b.inc)/H*r.height)+"px"};
+  hit.addEventListener("pointermove",move);hit.addEventListener("pointerdown",move);hit.addEventListener("pointerleave",()=>tip.hidden=true);
+}
+
+/* ---------- Excel export ---------- */
+async function exportXlsx(from,to,filename){
+  if(!dl)return toast("ส่งออกไม่ได้ในหน้านี้");
+  if(!window.XLSX)return toast("ตัวสร้างไฟล์ Excel ยังโหลดไม่เสร็จ ลองใหม่อีกครั้ง");
+  const js=JOBS.filter(j=>j.date>=from&&j.date<=to), es=EXPS.filter(e=>e.date>=from&&e.date<=to);
+  if(!js.length&&!es.length)return toast("ไม่มีข้อมูลในช่วงนี้");
+  const wb=XLSX.utils.book_new();
+  const mons=[...new Set([...js.map(j=>j.date.slice(0,7)),...es.map(e=>e.date.slice(0,7))])].sort();
+  const sum=[["สรุปรายเดือน "+thDate(from)+" – "+thDate(to)],[],["เดือน","รายได้รวม","จำนวนงาน","ค่าน้ำมัน","ค่าทางด่วน","รายจ่ายอื่น","รายได้สุทธิ","Net Margin %","เฉลี่ย/งาน"]];
+  const T={inc:0,n:0,fuel:0,toll:0,oth:0};
+  mons.forEach(m=>{const a=agg(js.filter(j=>j.date.startsWith(m)));const o=es.filter(e=>e.date.startsWith(m)).reduce((s,e)=>s+(e.amount||0),0);const nt=a.inc-a.fuel-a.toll-o;
+    sum.push([thMonth(m),a.inc,a.n,a.fuel,a.toll,o,nt,a.inc?+(nt/a.inc*100).toFixed(2):0,a.n?+(a.inc/a.n).toFixed(2):0]);T.inc+=a.inc;T.n+=a.n;T.fuel+=a.fuel;T.toll+=a.toll;T.oth+=o});
+  const tn=T.inc-T.fuel-T.toll-T.oth;sum.push(["รวม",T.inc,T.n,T.fuel,T.toll,T.oth,tn,T.inc?+(tn/T.inc*100).toFixed(2):0,T.n?+(T.inc/T.n).toFixed(2):0]);
+  const ws0=XLSX.utils.aoa_to_sheet(sum);ws0["!cols"]=[{wch:14},...Array(8).fill({wch:13})];XLSX.utils.book_append_sheet(wb,ws0,"สรุป");
+  const head=["ลำดับ","วันที่","เวลา","รายการ","สถานที่","ทะเบียน","เลขเคส","ลูกค้า","บริษัท","ค่าบริการ","เงินคืนประกัน","รายได้","ค่าทางด่วน","ค่าน้ำมัน","คงเหลือ"];
+  mons.forEach(m=>{const list=js.filter(j=>j.date.startsWith(m));if(!list.length)return;
+    const rows=[head];let t=[0,0,0,0,0,0];
+    list.forEach((j,i)=>{const n=jobNet(j),k=n-(j.toll||0)-(j.fuel||0);rows.push([i+1,thDate(j.date),j.time||"",j.type,j.place,j.plate,j.caseNo,j.customer,accLabel(j),j.amount,j.refund||0,n,j.toll||0,j.fuel||0,k]);[j.amount,j.refund||0,n,j.toll||0,j.fuel||0,k].forEach((v,x)=>t[x]+=v)});
+    rows.push(["","รวม","","","","","","","",...t]);
+    const ws=XLSX.utils.aoa_to_sheet(rows);ws["!cols"]=[{wch:6},{wch:12},{wch:7},{wch:12},{wch:32},{wch:16},{wch:18},{wch:14},{wch:12},...Array(6).fill({wch:12})];
+    XLSX.utils.book_append_sheet(wb,ws,thMonth(m))});
+  if(es.length){const rows=[["วันที่","หมวด","รายละเอียด","จำนวนเงิน"]];es.slice().sort((a,b)=>a.date<b.date?-1:1).forEach(e=>rows.push([thDate(e.date),e.category,e.note,e.amount]));rows.push(["รวม","","",es.reduce((s,e)=>s+(e.amount||0),0)]);
+    const ws=XLSX.utils.aoa_to_sheet(rows);ws["!cols"]=[{wch:12},{wch:20},{wch:36},{wch:12}];XLSX.utils.book_append_sheet(wb,ws,"รายจ่ายอื่น")}
+  const data=XLSX.write(wb,{bookType:"xlsx",type:"array"});
+  try{await dl.save({filename,data:new Blob([data],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})})}catch(e){if(e&&e.code!=="declined")toast("ส่งออกไม่สำเร็จ ลองใหม่อีกครั้ง")}
+}
+$("#csvBtn").onclick=()=>exportXlsx(range.from,range.to,`คุณนู๋สไลด์ออน_${range.from}_ถึง_${range.to}.xlsx`);
+$("#xlsMonth").onclick=()=>{const[y,m]=jm.split("-").map(Number);exportXlsx(jm+"-01",iso(new Date(y,m,0)),`คุณนู๋สไลด์ออน_${TH_M[m-1].replace(/\./g,"")}${String(y+543).slice(2)}.xlsx`)};
+
+/* ---------- jobs list ---------- */
+let jm=today.slice(0,7), em=today.slice(0,7);
+const shiftM=(ym,d)=>{const[y,m]=ym.split("-").map(Number);const t=new Date(y,m-1+d,1);return t.getFullYear()+"-"+pad(t.getMonth()+1)};
+$("#mPrev").onclick=()=>{jm=shiftM(jm,-1);renderJobs()};$("#mNext").onclick=()=>{jm=shiftM(jm,1);renderJobs()};
+$("#ePrev").onclick=()=>{em=shiftM(em,-1);renderExps()};$("#eNext").onclick=()=>{em=shiftM(em,1);renderExps()};
+$("#q").oninput=()=>renderJobs();
+$("#accFilter").innerHTML=`<option value="">ทุกบริษัท</option>`+ACCS.map(([c,n])=>`<option value="${esc(c)}">${esc(c==="OTHER"?"อื่นๆ":accOpt(c,n))}</option>`).join("");
+$("#accFilter").onchange=()=>renderJobs();
+$("#j-acc").innerHTML=ACCS.map(([c,n])=>`<option value="${esc(c)}">${esc(accOpt(c,n))}</option>`).join("");
+$("#j-acc").onchange=()=>{const o=$("#j-acc").value==="OTHER";$("#j-accOtherWrap").hidden=!o;$("#j-accOther").required=o;if(o)$("#j-accOther").focus()};
+$("#j-typeSel").onchange=()=>{const o=$("#j-typeSel").value==="__other";$("#j-typeOtherWrap").hidden=!o;$("#j-typeOther").required=o;if(o)$("#j-typeOther").focus()};
+var dateTxt=v=>{if(!v)return"เลือกวันที่";const d=parse(v);return TH_WDS[d.getDay()]+" "+d.getDate()+" "+TH_M[d.getMonth()]+" "+(d.getFullYear()+543)};
+$("#j-date").oninput=$("#j-date").onchange=()=>$("#j-dateTxt").textContent=dateTxt($("#j-date").value);
+$("#e-date").oninput=$("#e-date").onchange=()=>$("#e-dateTxt").textContent=dateTxt($("#e-date").value);
+
+function renderJobs(){
+  $("#mLabel").textContent=thMonth(jm);
+  const q=$("#q").value.trim().toLowerCase(),af=$("#accFilter").value;
+  let js=JOBS.filter(j=>j.date.startsWith(jm));
+  if(af)js=js.filter(j=>(j.account||"CASH")===af);
+  
+  if(q)js=js.filter(j=>[j.type,j.place,j.plate,j.caseNo,j.customer,j.accountName].join(" ").toLowerCase().includes(q));
+  const a=agg(js);
+  $("#xlsMonth").hidden=!dl||!JOBS.some(j=>j.date.startsWith(jm));
+  $("#jobsSum").innerHTML=`<span style="display:block;margin-bottom:4px">แตะที่รายการเพื่อแก้ไขหรือลบ</span>${fmt0(a.n)} งาน · รายได้ <b>${fmt(a.inc)}</b> · น้ำมัน ${fmt(a.fuel)} · ทางด่วน ${fmt(a.toll)} · คงเหลือ <b>${fmt(a.inc-a.fuel-a.toll)}</b>`;
+  if(!js.length){$("#jobList").innerHTML=`<div class="empty">${months.size?"ยังไม่มีงานในเดือนนี้":"ยังไม่มีข้อมูล"}<br><span class="sub">กดปุ่ม "+ บันทึกงาน" เพื่อเพิ่มงานแรก</span></div>`;return}
+  const byD=new Map();[...js].reverse().forEach(j=>{if(!byD.has(j.date))byD.set(j.date,[]);byD.get(j.date).push(j)});
+  let h="";
+  for(const[d,list]of byD){const s=agg(list);
+    h+=`<div class="day"><div class="dayhead"><span><b>${TH_WD[parse(d).getDay()]} ${thDate(d)}</b> · ${list.length} งาน</span><span>รายได้ ${fmt(s.inc)} · คงเหลือ <b>${fmt(s.inc-s.fuel-s.toll)}</b></span></div>`;
+    [...list].reverse().forEach(j=>{const cost=(j.fuel||0)+(j.toll||0);const acc=j.account||"CASH";
+      h+=`<button class="row" data-id="${esc(j.id)}" data-m="${j.date.slice(0,7)}"><div style="min-width:0"><div class="t"><span class="tag ${acc==="CASH"?"cash":""}">${esc(accLabel(j))}</span>${esc(j.type)} · ${esc(j.place||"-")}</div><div class="m">${[j.time,j.plate,j.caseNo,j.customer].filter(Boolean).map(esc).join(" · ")||"&nbsp;"}</div></div><div><div class="a">${fmt(jobNet(j))} <span class="sub" aria-label="แก้ไข">✎</span></div><div class="c">${cost?`${j.fuel?"น้ำมัน "+fmt(j.fuel):""}${j.fuel&&j.toll?" · ":""}${j.toll?"ด่วน "+fmt(j.toll):""}`:(j.refund?"หักประกัน "+fmt(j.refund):"")}</div></div></button>`});
+    h+=`</div>`}
+  $("#jobList").innerHTML=h;
+}
+$("#jobList").onclick=e=>{const r=e.target.closest(".row");if(!r)return;const j=(months.get(r.dataset.m)?.jobs||[]).find(x=>x.id===r.dataset.id);if(j)openJob(j)};
+
+function renderExps(){
+  $("#eLabel").textContent=thMonth(em);
+  const es=EXPS.filter(e=>e.date.startsWith(em)).sort((a,b)=>a.date<b.date?1:-1);
+  $("#addExp").hidden=!canWrite;
+  if(!es.length){$("#expList").innerHTML=`<div class="empty">ยังไม่มีรายจ่ายอื่นในเดือนนี้<br><span class="sub">กด "+ เพิ่มรายจ่าย" เพื่อบันทึก</span></div>`;return}
+  const t=es.reduce((s,e)=>s+(e.amount||0),0);
+  $("#expList").innerHTML=`<div class="dayhead"><span><b>รวม ${es.length} รายการ</b></span><span><b>${fmt(t)}</b> บาท</span></div>`+es.map(e=>`<button class="row" data-id="${esc(e.id)}" data-m="${e.date.slice(0,7)}"><div style="min-width:0"><div class="t">${esc(e.category)}</div><div class="m">${thDate(e.date)}${e.note?" · "+esc(e.note):""}</div></div><div><div class="a neg">${fmt(e.amount)} <span class="sub" aria-label="แก้ไข">✎</span></div></div></button>`).join("");
+}
+$("#expList").onclick=e=>{const r=e.target.closest(".row");if(!r)return;const x=(months.get(r.dataset.m)?.exps||[]).find(v=>v.id===r.dataset.id);if(x)openExp(x)};
+
+/* ---------- dialogs ---------- */
+let editing=null,confirmDel=false;
+function closeDlg(){$("#jobDlg").hidden=true;$("#expDlg").hidden=true;editing=null}
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=closeDlg);
+document.querySelectorAll(".scrim").forEach(s=>s.addEventListener("click",e=>{if(e.target===s)closeDlg()}));
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDlg()});
+const jf=["date","type","place","plate","case","acc","cust","amt","ref","toll","fuel"];
+function updNet(){$("#j-net").textContent=fmt(num($("#j-amt").value)-num($("#j-ref").value)-num($("#j-toll").value)-num($("#j-fuel").value))}
+["#j-amt","#j-ref","#j-toll","#j-fuel"].forEach(s=>$(s).oninput=updNet);
+function openJob(j){
+  editing=j||null;confirmDel=false;
+  $("#jobDlgTitle").textContent=j?"แก้ไขงาน":"บันทึกงาน";
+  const last=JOBS[JOBS.length-1];
+  $("#j-date").value=j?j.date:today;$("#j-dateTxt").textContent=dateTxt($("#j-date").value);$("#j-time").value=j?(j.time||""):nowHM();
+  $("#j-typeSel").innerHTML=TYPES.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join("")+`<option value="__other">อื่นๆ (ระบุเอง)</option>`;
+  $("#j-typeSel").value=j?(TYPES.includes(j.type)?j.type:"__other"):"ยกรถ";$("#j-typeOther").value=j&&!TYPES.includes(j.type)?j.type:"";$("#j-typeSel").onchange();$("#j-place").value=j?.place||"";$("#j-plate").value=j?.plate||"";
+  $("#j-case").value=j?.caseNo||"";$("#j-acc").value=j?(j.account||"CASH"):"CASH";$("#j-accOther").value=j?.accountName||"";$("#j-accOtherWrap").hidden=$("#j-acc").value!=="OTHER";$("#j-accOther").required=$("#j-acc").value==="OTHER";$("#j-cust").value=j?.customer||"";
+  $("#j-amt").value=j?j.amount:"";$("#j-ref").value=j?.refund||"";$("#j-toll").value=j?.toll||"";$("#j-fuel").value=j?.fuel||"";
+  const ro=!canWrite;$("#jobForm").querySelectorAll("input,select").forEach(i=>i.disabled=ro);$("#j-save").hidden=ro;
+  $("#j-del").hidden=!j||ro;$("#j-del").textContent="ลบ";updNet();$("#jobDlg").hidden=false;
+}
+function openExp(x){
+  editing=x||null;confirmDel=false;
+  $("#expDlgTitle").textContent=x?"แก้ไขรายจ่าย":"เพิ่มรายจ่ายอื่น";
+  $("#e-date").value=x?x.date:(em===today.slice(0,7)?today:em+"-01");$("#e-dateTxt").textContent=dateTxt($("#e-date").value);$("#e-cat").value=x?.category||"";$("#e-note").value=x?.note||"";$("#e-amt").value=x?x.amount:"";
+  const ro=!canWrite;$("#expForm").querySelectorAll("input").forEach(i=>i.disabled=ro);$("#e-save").hidden=ro;
+  $("#e-del").hidden=!x||ro;$("#e-del").textContent="ลบ";$("#expDlg").hidden=false;
+}
+$("#fab").onclick=()=>openJob(null);
+$("#addExp").onclick=()=>openExp(null);
+
+$("#jobForm").onsubmit=async e=>{e.preventDefault();if(!store)return toast("ยังเชื่อมต่อฐานข้อมูลไม่ได้");
+  const tsel=$("#j-typeSel").value,acc=$("#j-acc").value;
+  const j={id:editing?.id||uid(),date:$("#j-date").value,time:$("#j-time").value,type:tsel==="__other"?$("#j-typeOther").value.trim():tsel,place:$("#j-place").value.trim(),plate:$("#j-plate").value.trim(),caseNo:$("#j-case").value.trim(),customer:$("#j-cust").value.trim(),account:acc,accountName:acc==="OTHER"?$("#j-accOther").value.trim():"",amount:num($("#j-amt").value),refund:num($("#j-ref").value),toll:num($("#j-toll").value),fuel:num($("#j-fuel").value)};
+  const old=editing;$("#j-save").disabled=true;
+  try{ await saveItem("jobs",j,old); closeDlg(); toast(old?"แก้ไขแล้ว":"บันทึกแล้ว"); if(!old){jm=j.date.slice(0,7)} render() }
+  catch(err){toast(errMsg(err))} finally{$("#j-save").disabled=false}
+};
+$("#expForm").onsubmit=async e=>{e.preventDefault();if(!store)return toast("ยังเชื่อมต่อฐานข้อมูลไม่ได้");
+  const x={id:editing?.id||uid(),date:$("#e-date").value,category:$("#e-cat").value.trim(),note:$("#e-note").value.trim(),amount:num($("#e-amt").value)};
+  const old=editing;$("#e-save").disabled=true;
+  try{await saveItem("exps",x,old);closeDlg();toast(old?"แก้ไขแล้ว":"บันทึกแล้ว");em=x.date.slice(0,7);render()}
+  catch(err){toast(errMsg(err))} finally{$("#e-save").disabled=false}
+};
+async function delFlow(btn,kind){
+  if(!confirmDel){confirmDel=true;btn.textContent="กดอีกครั้งเพื่อยืนยันการลบ";return}
+  const old=editing;btn.disabled=true;
+  try{await mutate(old.date.slice(0,7),m=>{m[kind]=(m[kind]||[]).filter(v=>v.id!==old.id)});closeDlg();toast("ลบแล้ว")}
+  catch(err){toast(errMsg(err))}finally{btn.disabled=false}
+}
+$("#j-del").onclick=()=>delFlow($("#j-del"),"jobs");
+$("#e-del").onclick=()=>delFlow($("#e-del"),"exps");
+function errMsg(e){return e&&e.code==="quota_exceeded"?"พื้นที่เก็บข้อมูลเต็ม":e&&e.code==="invalid_argument"?"บัญชีนี้ไม่มีสิทธิ์แก้ไขข้อมูล":"บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง"}
+
+/* ---------- storage: one document per month ----------
+   ทำงานได้ 3 แบบ:
+   1) เปิดใน Claude  → ใช้ฐานข้อมูลของ Claude อัตโนมัติ
+   2) บน GitHub Pages + ใส่ FIREBASE_CONFIG ด้านบน → ใช้ Firebase Firestore (ข้อมูลตรงกันทุกเครื่อง)
+   3) บน GitHub Pages ไม่ใส่ config → เก็บในเครื่องนี้เท่านั้น (localStorage) */
+let store=null, queue=Promise.resolve();
+const serial=run=>{const p=queue.then(run,run);queue=p.catch(()=>{});return p};
+const clean=(cur)=>({jobs:[...((cur&&cur.jobs)||[])],exps:[...((cur&&cur.exps)||[])]});
+function claudeStore(cdb){
+  const holder="tab-"+uid();
+  return{mode:"claude",
+    subscribe(cb,err){cdb.collection("months").onSnapshot(snap=>{const m=new Map();snap.docs.forEach(d=>{if(d.exists)m.set(d.id,d.data())});cb(m)},err)},
+    mutate(mid,fn){return serial(async()=>{const ref=cdb.doc("months/"+mid);
+      for(let i=0;i<10;i++){try{const r=await ref.acquire({holder,ttlMs:6000});if(r.acquired)break}catch(e){break}await new Promise(r=>setTimeout(r,300+Math.random()*300))}
+      const sn=await ref.get();const m=clean(sn.exists?sn.data():null);fn(m);m.updatedAt=new Date().toISOString();await ref.set(m)})}}
+}
+function firebaseStore(fs){
+  return{mode:"firebase",
+    subscribe(cb,err){fs.collection("months").onSnapshot(snap=>{const m=new Map();snap.forEach(d=>m.set(d.id,d.data()));cb(m)},err)},
+    mutate(mid,fn){return serial(()=>fs.runTransaction(async tx=>{const ref=fs.collection("months").doc(mid);const sn=await tx.get(ref);const m=clean(sn.exists?sn.data():null);fn(m);m.updatedAt=new Date().toISOString();tx.set(ref,m)}))}}
+}
+function localStore(){
+  const K="slide.months";let cbs=[];
+  const load=()=>{try{return JSON.parse(localStorage.getItem(K)||"{}")}catch(e){return{}}};
+  const emit=()=>{const o=load();cbs.forEach(cb=>cb(new Map(Object.entries(o))))};
+  return{mode:"local",subscribe(cb){cbs.push(cb);emit()},
+    mutate(mid,fn){return serial(async()=>{const o=load();const m=clean(o[mid]);fn(m);m.updatedAt=new Date().toISOString();o[mid]=m;try{localStorage.setItem(K,JSON.stringify(o))}catch(e){throw{code:"quota_exceeded"}}emit()})}}
+}
+const browserDownload={async save({filename,data}){const blob=data instanceof Blob?data:new Blob([data]);const u=URL.createObjectURL(blob);const a=document.createElement("a");a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);return{status:"saved"}}};
+const loadScript=src=>new Promise((ok,no)=>{const t=document.createElement("script");t.src=src;t.onload=ok;t.onerror=no;document.head.appendChild(t)});
+const mutate=(mid,fn)=>store.mutate(mid,fn);
+async function saveItem(kind,item,old){
+  const nm=item.date.slice(0,7);
+  if(old&&old.date.slice(0,7)!==nm){await mutate(old.date.slice(0,7),m=>{m[kind]=m[kind].filter(v=>v.id!==old.id)})}
+  await mutate(nm,m=>{const i=m[kind].findIndex(v=>v.id===item.id);if(i>=0)m[kind][i]=item;else m[kind].push(item)});
+}
+
+/* ---------- render ---------- */
+function render(){if(tab==="sum")renderSummary();else if(tab==="jobs")renderJobs();else renderExps()}
+let toastT;function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,2200)}
+let baseBanner="";
+function showBanner(html){$("#banner").hidden=!html;$("#banner").innerHTML=html||""}
+
+/* ---------- login ---------- */
+const AUTH_KEY="slide.auth";
+const isAuthed=()=>{try{return localStorage.getItem(AUTH_KEY)===LOGIN.user}catch(e){return false}};
+function showApp(on){$("#login").hidden=on;document.querySelector("header.top").hidden=!on;$("main.wrap").hidden=!on;if(!on)$("#fab").hidden=true;else setTab(tab)}
+$("#loginForm").onsubmit=e=>{e.preventDefault();
+  if($("#lg-user").value.trim()===LOGIN.user&&$("#lg-pass").value===LOGIN.pass){try{localStorage.setItem(AUTH_KEY,LOGIN.user)}catch(e){}$("#lg-err").hidden=true;$("#lg-pass").value="";showApp(true)}
+  else{$("#lg-err").hidden=false;$("#lg-pass").value="";$("#lg-pass").focus()}};
+$("#logout").onclick=()=>{try{localStorage.removeItem(AUTH_KEY)}catch(e){}closeDlg();showApp(false)};
+
+/* ---------- start ---------- */
+showApp(isAuthed());
+function onData(m){
+  months.clear();for(const[k,v]of m)months.set(k,v);
+  const first=!JOBS.length;rebuild();
+  if(first&&JOBS.length&&!JOBS.some(j=>j.date.startsWith(jm))){jm=JOBS[JOBS.length-1].date.slice(0,7)}
+  const t=new Date();$("#sync").textContent=`${store.mode==="local"?"บันทึกในเครื่องนี้":"ซิงก์แล้ว"} ${pad(t.getHours())}:${pad(t.getMinutes())} · ${fmt0(JOBS.length)} งาน`;
+  if(store.mode!=="claude"&&!months.size)offerSeed();else showBanner(baseBanner);
+  render();
+}
+const onErr=()=>{$("#sync").textContent="การเชื่อมต่อหลุด";showBanner("การเชื่อมต่อข้อมูลหลุด รีเฟรชหน้านี้เพื่อเชื่อมต่อใหม่")};
+async function importSeed(seed){for(const[k,v]of Object.entries(seed))await mutate(k,m=>{m.jobs=v.jobs||[];m.exps=v.exps||[]});toast("นำเข้าแล้ว")}
+async function offerSeed(){
+  let seed=null;try{const r=await fetch("seed.json");if(r.ok)seed=await r.json()}catch(e){}
+  if(months.size)return;
+  if(seed){
+    const n=Object.values(seed).reduce((s,m)=>s+(m.jobs||[]).length,0);
+    showBanner(`ยังไม่มีข้อมูลในระบบ <button class="btn pri" id="seedBtn" style="margin-left:8px">นำเข้าข้อมูลเดิมจาก Excel (${fmt0(n)} งาน)</button>`);
+    $("#seedBtn").onclick=async()=>{$("#seedBtn").disabled=true;try{await importSeed(seed)}catch(e){toast(errMsg(e));$("#seedBtn").disabled=false}};
+  }else{
+    showBanner(`ยังไม่มีข้อมูลในระบบ นำเข้าข้อมูลเดิมได้จากไฟล์ seed.json <label class="btn pri" style="display:inline-block;margin-left:8px">เลือกไฟล์ seed.json<input type="file" id="seedFile" accept=".json,application/json" hidden></label>`);
+    $("#seedFile").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!d||typeof d!=="object"||!Object.values(d).every(m=>m&&Array.isArray(m.jobs)))throw 0;await importSeed(d)}catch(err){toast("ไฟล์ไม่ถูกต้อง เลือกไฟล์ seed.json ที่ได้จากระบบ")}};
+  }
+}
+(async()=>{
+  const c=window.claude;
+  if(c&&c.use){
+    const [d,u,dw]=await Promise.all([c.use("db"),c.use("user").catch(()=>null),c.use("downloads").catch(()=>null)]);
+    dl=dw;
+    if(!d){$("#sync").textContent="ไม่ได้เชื่อมต่อ";showBanner("ยังเชื่อมต่อฐานข้อมูลไม่ได้ ลองเข้าสู่ระบบ Claude แล้วเปิดหน้านี้อีกครั้ง");return}
+    if(u){try{const w=await u.can("data.write");if(w===false){canWrite=false;$("#fab").hidden=true}}catch(e){}}
+    store=claudeStore(d);
+  }else{
+    dl=browserDownload;
+    if(FIREBASE_CONFIG){
+      try{await loadScript("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");await loadScript("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js");
+        firebase.initializeApp(FIREBASE_CONFIG);store=firebaseStore(firebase.firestore())}
+      catch(e){$("#sync").textContent="ไม่ได้เชื่อมต่อ";showBanner("เชื่อมต่อ Firebase ไม่ได้ ตรวจสอบ FIREBASE_CONFIG แล้วรีเฟรช");return}
+    }else{
+      store=localStore();
+      baseBanner=("โหมดเก็บข้อมูลในเครื่องนี้เท่านั้น เครื่องอื่นจะไม่เห็นข้อมูล ใส่ค่า FIREBASE_CONFIG ในไฟล์เพื่อให้ทุกเครื่องเห็นข้อมูลตรงกัน");showBanner(baseBanner);
+    }
+  }
+  store.subscribe(onData,onErr);
+})();
+})();
+</script>
+
+</body>
+</html>
