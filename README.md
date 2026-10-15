@@ -27,5 +27,5 @@ const FIREBASE_CONFIG={...}   // เชื่อมกับโปรเจก�
 
 ## สถานะปัจจุบัน
 - เชื่อม Firebase โปรเจกต์ `khunnu-slideon` แล้ว (Firestore: asia-southeast1)
-- ล็อกอินด้วยอีเมล/รหัสผ่านของ Firebase Authentication — เพิ่มผู้ใช้ที่ Firebase Console → Authentication → Users → Add user
+- ล็อกอินด้วยชื่อผู้ใช้ เช่น `admin` (ระบบเติม `@slideon.app` ให้) — เพิ่มผู้ใช้ที่ Firebase Console → Authentication → Users → Add user โดยใส่ `ชื่อ@slideon.app`
 - Firestore Rules: อ่าน/เขียนได้เฉพาะผู้ที่ล็อกอิน

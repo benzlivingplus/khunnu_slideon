@@ -263,6 +263,7 @@ tfoot td{font-weight:700;border-bottom:0;border-top:2px solid var(--ink)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 /* ===== ตั้งค่า ===== */
+const USER_DOMAIN="@slideon.app";        // ชื่อผู้ใช้ "admin" = บัญชี admin@slideon.app ใน Firebase Authentication
 const LOGIN={user:"admin",pass:"1234"};   // เปลี่ยนชื่อผู้ใช้/รหัสผ่านตรงนี้
 const FIREBASE_CONFIG={
   apiKey:"AIzaSyC6cm45h_ZqIuFJoy6IaCneYkXr4pInoEs",
@@ -620,7 +621,7 @@ const loginFail=()=>{$("#lg-err").hidden=false;$("#lg-pass").value="";$("#lg-pas
 $("#loginForm").onsubmit=async e=>{e.preventDefault();
   if(useFirebase){
     $("#lg-btn").disabled=true;
-    try{await fbReady;await firebase.auth().signInWithEmailAndPassword($("#lg-user").value.trim(),$("#lg-pass").value);$("#lg-err").hidden=true;$("#lg-pass").value=""}
+    try{await fbReady;const u=$("#lg-user").value.trim().toLowerCase();await firebase.auth().signInWithEmailAndPassword(u.includes("@")?u:u+USER_DOMAIN,$("#lg-pass").value);$("#lg-err").hidden=true;$("#lg-pass").value=""}
     catch(err){loginFail()}finally{$("#lg-btn").disabled=false}
     return;
   }
@@ -629,7 +630,7 @@ $("#loginForm").onsubmit=async e=>{e.preventDefault();
 $("#logout").onclick=async()=>{closeDlg();if(useFirebase){try{await firebase.auth().signOut()}catch(e){}location.reload();return}try{localStorage.removeItem(AUTH_KEY)}catch(e){}showApp(false)};
 
 /* ---------- start ---------- */
-if(useFirebase){$("#lg-userLbl").textContent="อีเมล";$("#lg-user").type="email";showApp(false)}
+if(useFirebase){showApp(false)}
 else showApp(isAuthed());
 function onData(m){
   months.clear();for(const[k,v]of m)months.set(k,v);
