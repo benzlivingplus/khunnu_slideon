@@ -622,6 +622,34 @@ function onData(m){
   render();
 }
 const onErr=()=>{$("#sync").textContent="การเชื่อมต่อหลุด";showBanner("การเชื่อมต่อข้อมูลหลุด รีเฟรชหน้านี้เพื่อเชื่อมต่อใหม่")};
+/* นำเข้าไฟล์ Excel เดิม (ชีท "บันทึกรับ-จ่าย") */
+function parseLegacyXlsx(buf){
+  const wb=XLSX.read(buf,{type:"array"});
+  const ws=wb.Sheets["บันทึกรับ-จ่าย"]||wb.Sheets[wb.SheetNames.find(n=>/รับ.?จ่าย/.test(n))];
+  if(!ws)throw new Error("sheet");
+  const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null});
+  const codes=["EA","AP","MD","FN","AION","PMC","ZK/VV","KJ","EXP","CASH"];
+  const fixT={"รีเซ็ทขั่วแบต":"รีเซ็ตขั้วแบต","เปลรี่ยนยาง":"เปลี่ยนยาง"};
+  const pd=v=>{
+    if(v==null||v==="")return null;
+    if(typeof v==="number"){const c=XLSX.SSF.parse_date_code(v);if(!c)return null;return`2026-${pad(c.d)}-${pad(c.m)}`} // ไฟล์เดิมเก็บวัน/เดือนสลับกัน
+    const m=String(v).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);if(!m)return null;
+    let y=+m[3];if(y===2025)y=2026;if(y>2500)y-=543;return`${y}-${pad(+m[2])}-${pad(+m[1])}`};
+  const n=v=>typeof v==="number"?v:0, t=v=>v==null?"":String(v).trim();
+  const out={};let cur=null,i=0;
+  for(const r of rows.slice(3)){
+    if(r[0]==null&&r[2]==null)continue;
+    cur=pd(r[1])||cur;if(!cur)continue;
+    let acc=null,amt=0;for(let k=0;k<10;k++){const v=r[7+k];if(typeof v==="number"&&v){acc=codes[k];amt+=v}}
+    const ym=cur.slice(0,7);out[ym]=out[ym]||{jobs:[],exps:[]};
+    const j={id:"x"+ym.replace("-","")+String(++i).padStart(4,"0"),date:cur,type:fixT[t(r[2])]||t(r[2])||"อื่นๆ",account:acc||"CASH",amount:amt};
+    const pl=t(r[3]),pt=t(r[4]),cs=t(r[5]),cu=t(r[6]);if(pl)j.place=pl;if(pt)j.plate=pt;if(cs)j.caseNo=cs;if(cu)j.customer=cu;
+    if(n(r[17]))j.refund=n(r[17]);if(n(r[19]))j.toll=n(r[19]);if(n(r[20]))j.fuel=n(r[20]);
+    out[ym].jobs.push(j);
+  }
+  if(!Object.keys(out).length)throw new Error("empty");
+  return out;
+}
 async function importSeed(seed){for(const[k,v]of Object.entries(seed))await mutate(k,m=>{m.jobs=v.jobs||[];m.exps=v.exps||[]});toast("นำเข้าแล้ว")}
 async function offerSeed(){
   let seed=null;try{const r=await fetch("seed.json");if(r.ok)seed=await r.json()}catch(e){}
@@ -631,8 +659,12 @@ async function offerSeed(){
     showBanner(`ยังไม่มีข้อมูลในระบบ <button class="btn pri" id="seedBtn" style="margin-left:8px">นำเข้าข้อมูลเดิมจาก Excel (${fmt0(n)} งาน)</button>`);
     $("#seedBtn").onclick=async()=>{$("#seedBtn").disabled=true;try{await importSeed(seed)}catch(e){toast(errMsg(e));$("#seedBtn").disabled=false}};
   }else{
-    showBanner(`ยังไม่มีข้อมูลในระบบ นำเข้าข้อมูลเดิมได้จากไฟล์ seed.json <label class="btn pri" style="display:inline-block;margin-left:8px">เลือกไฟล์ seed.json<input type="file" id="seedFile" accept=".json,application/json" hidden></label>`);
-    $("#seedFile").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!d||typeof d!=="object"||!Object.values(d).every(m=>m&&Array.isArray(m.jobs)))throw 0;await importSeed(d)}catch(err){toast("ไฟล์ไม่ถูกต้อง เลือกไฟล์ seed.json ที่ได้จากระบบ")}};
+    showBanner(`ยังไม่มีข้อมูลในระบบ นำเข้าข้อมูลเดิมได้จากไฟล์ Excel (รับ-จ่าย มค - มิย 69.xlsx) หรือ seed.json <label class="btn pri" style="display:inline-block;margin-left:8px">เลือกไฟล์ Excel<input type="file" id="seedFile" accept=".xlsx,.xls,.json,application/json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden></label>`);
+    $("#seedFile").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{let d;
+      if(/\.json$/i.test(f.name)){d=JSON.parse(await f.text());if(!d||typeof d!=="object"||!Object.values(d).every(m=>m&&Array.isArray(m.jobs)))throw 0}
+      else{if(!window.XLSX)return toast("ตัวอ่าน Excel ยังโหลดไม่เสร็จ ลองใหม่อีกครั้ง");d=parseLegacyXlsx(await f.arrayBuffer())}
+      const cnt=Object.values(d).reduce((s,m)=>s+m.jobs.length,0);showBanner(`กำลังนำเข้า ${fmt0(cnt)} งาน…`);await importSeed(d)}
+    catch(err){e.target.value="";toast("อ่านไฟล์ไม่ได้ เลือกไฟล์ Excel บันทึกรับ-จ่ายเดิม หรือ seed.json")}};
   }
 }
 (async()=>{
