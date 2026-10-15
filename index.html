@@ -264,7 +264,14 @@ tfoot td{font-weight:700;border-bottom:0;border-top:2px solid var(--ink)}
 <script>
 /* ===== ตั้งค่า ===== */
 const LOGIN={user:"admin",pass:"1234"};   // เปลี่ยนชื่อผู้ใช้/รหัสผ่านตรงนี้
-const FIREBASE_CONFIG=null;               // บน GitHub: วาง config จาก Firebase Console แทน null เช่น {apiKey:"...",authDomain:"...",projectId:"...",appId:"..."}
+const FIREBASE_CONFIG={
+  apiKey:"AIzaSyC6cm45h_ZqIuFJoy6IaCneYkXr4pInoEs",
+  authDomain:"khunnu-slideon.firebaseapp.com",
+  projectId:"khunnu-slideon",
+  storageBucket:"khunnu-slideon.firebasestorage.app",
+  messagingSenderId:"997770316554",
+  appId:"1:997770316554:web:bb1849023f6b04354e48f3"
+};               // บน GitHub: วาง config จาก Firebase Console แทน null เช่น {apiKey:"...",authDomain:"...",projectId:"...",appId:"..."}
                                           // เมื่อใส่ config แล้ว จะล็อกอินด้วยอีเมล/รหัสผ่านของ Firebase Authentication แทน LOGIN ด้านบน
 (function(){
 const ACCS=[["EA","อีเอ"],["AP","แอพปาย"],["MD","มอลเดียล"],["FN","ฟิม"],["AION","ไออ้อน"],["PMC","ดีพอล"],["ZK/VV","ซีคเกอร์/วอลโว่"],["KJ","เคเจ"],["EXP","เอ็กเพิค"],["CASH","เงินสด"],["OTHER","อื่นๆ"]];

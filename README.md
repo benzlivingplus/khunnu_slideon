@@ -8,8 +8,7 @@
 
 ## ตั้งค่า (แก้ที่ด้านบนของ `<script>` ใน index.html)
 ```js
-const LOGIN={user:"admin",pass:"1234"};   // ชื่อผู้ใช้/รหัสผ่าน
-const FIREBASE_CONFIG=null;               // ใส่ config Firebase เพื่อให้ทุกเครื่องเห็นข้อมูลตรงกัน
+const FIREBASE_CONFIG={...}   // เชื่อมกับโปรเจกต์ Firebase "khunnu-slideon" แล้ว
 ```
 
 ## ขึ้น GitHub Pages
@@ -25,3 +24,8 @@ const FIREBASE_CONFIG=null;               // ใส่ config Firebase เพื
 ## ข้อควรรู้เรื่องความปลอดภัย
 หน้าล็อกอินตรวจรหัสในเบราว์เซอร์ ใครเปิดดูซอร์สโค้ดจะเห็นรหัสผ่านได้ และ repo สาธารณะบน GitHub ทุกคนอ่านโค้ดได้
 ถ้าใช้จริงกับข้อมูลการเงิน ควรเปลี่ยนไปใช้ Firebase Authentication และตั้ง Firestore Rules ให้เฉพาะผู้ล็อกอินอ่าน/เขียนได้
+
+## สถานะปัจจุบัน
+- เชื่อม Firebase โปรเจกต์ `khunnu-slideon` แล้ว (Firestore: asia-southeast1)
+- ล็อกอินด้วยอีเมล/รหัสผ่านของ Firebase Authentication — เพิ่มผู้ใช้ที่ Firebase Console → Authentication → Users → Add user
+- Firestore Rules: อ่าน/เขียนได้เฉพาะผู้ที่ล็อกอิน
